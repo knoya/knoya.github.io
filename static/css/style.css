@@ -143,3 +143,22 @@ body.modal-open {
 .img-info > p, .img-info > strong {
     color: white;
 }
+
+.splash {
+    height: 80vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.splash > a {
+    background-color: blue;
+    text-align: center;
+    padding: 20px;
+    border-radius: 2px;
+}
+
+.splash h2 {
+    color: white;
+}

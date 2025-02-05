@@ -4,6 +4,7 @@ const html = {
     }
 }
 
+var imagesList = [];
 var totalItems = imgJSON.length;
 var imgPerPage = 12;
 var totalPage = Math.ceil(totalItems / imgPerPage);
@@ -12,7 +13,6 @@ var state = {
     imgPerPage,
     totalPage,
     maxVisibleButtons: 5,
-    imagesList: [],
     currentTheaterImageId: ""
 };
 
@@ -24,14 +24,32 @@ var body = html.get("#imgInfoBody")
 var container = html.get("#theater")
 var imageContainer = html.get("#imageContainer")
 var imgInfo = html.get("#imgInfo")
-var pageNumberInput = html.get("#pagenumber")
 
-pageNumberInput.setAttribute("max", totalPage)
+let url = new URL(window.location.href)
 
 function getImages(maxImages=1) {
-    state.imagesList = imgJSON;
+    imagesList = imgJSON;
     list.update();
 };
+
+function setParams(name, data) {
+    switch (name) {
+        case "page":
+            url.searchParams.set('page', state.page);
+            window.history.pushState(state, '', url.toString());
+            break;
+        case "photo":
+            const imageIndex = data;
+            url.searchParams.set('photo', imagesList[imageIndex].id);
+            window.history.pushState(state, '', url.toString());
+            break;
+    }
+}
+
+function deleteParam(name) {
+    url.searchParams.delete(name);
+    window.history.pushState(state, '', url.toString());
+}
 
 const pageControls = {
     next(){
@@ -39,22 +57,24 @@ const pageControls = {
         if(state.page > state.totalPage){
             state.page--;
         }
-      
+        setParams('page')
     },
     prev(){
         state.page--;
         if(state.page < 1){
             state.page++;
         }
+        setParams('page')
     },
     goTo(page){
         if(page < 1){
             page = 1;
         }
-        state.page = page;
+        state.page = parseInt(page);
         if(page > state.totalPage){
-            state.page = state.totalPage;
+            state.page = parseInt(state.totalPage);
         }
+        setParams('page')
     },
     createListeners(){
         html.get('.first').addEventListener("click", ()=>{
@@ -73,28 +93,24 @@ const pageControls = {
             pageControls.prev();
             update();
         })
-        html.get('#pageNavSubmit').addEventListener("click", ()=>{
-            var val = parseInt(html.get("#pagenumber").value);
-            pageControls.goTo(val);
-            state.page = val;
-            update();
-        })
     }
 }
 
 const theaterControls = {
     next(){
-        let nextImageIndex = state.imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) + 1;
+        let nextImageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) + 1;
 
         if (nextImageIndex < totalItems) {
-            openTheaterMode(state.imagesList[nextImageIndex])
+            openTheaterMode(imagesList[nextImageIndex])
+            setParams('photo', nextImageIndex)
         }
     },
     prev(){
-        let prevImageIndex = state.imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) - 1;
+        let prevImageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) - 1;
 
         if (prevImageIndex >= 0) {
-            openTheaterMode(state.imagesList[prevImageIndex])
+            openTheaterMode(imagesList[prevImageIndex])
+            setParams('photo', prevImageIndex)
         }
     },
     createListeners(){
@@ -110,7 +126,6 @@ const theaterControls = {
         })
     }
 }
-
 
 const list = {
     create(images){
@@ -135,7 +150,7 @@ const list = {
         let start = page * state.imgPerPage;
         let end = start + state.imgPerPage;
         
-        const paginatedItems = state.imagesList.slice(start, end);   
+        const paginatedItems = imagesList.slice(start, end);
         list.create(paginatedItems);
       
     }
@@ -170,7 +185,7 @@ const list = {
             maxLeft = 1;
             maxRight = maxVisibleButtons;
         }
-        
+
         if(maxRight > state.totalPage){
             maxLeft = state.totalPage - (maxVisibleButtons - 1);
             maxRight = state.totalPage;
@@ -193,6 +208,7 @@ function openTheaterMode(img) {
 
     // prevent body from scrolling when theater is open
     htmlbody.setAttribute("class", "modal-open")
+    setParams("photo", state.currentTheaterImageId)
 
     return null;
 }
@@ -200,6 +216,8 @@ function openTheaterMode(img) {
 function closeTheaterMode() {
     container.style.display = "none"
     htmlbody.removeAttribute("class")
+    state.currentTheaterImageId = "";
+    deleteParam('photo');
 
     return null;
 }
@@ -218,6 +236,19 @@ function init(){
     getImages(totalItems);
     pageControls.createListeners();
     theaterControls.createListeners();
+    
+    const initPage = url.searchParams.get("page");
+    const initPhoto = url.searchParams.get("photo")
+
+    if (initPage) {
+        pageControls.goTo(initPage)
+    }
+
+    if (initPhoto) {
+        let imageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(initPhoto);
+        openTheaterMode(imagesList[imageIndex])
+    }
+
     update();
 }
   
