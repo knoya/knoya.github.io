@@ -21,9 +21,10 @@ var imgGrid = html.get("#imgGrid");
 var theaterImage = html.get("#theaterImg")
 var title = html.get("#imgInfoTitle")
 var body = html.get("#imgInfoBody")
-var container = html.get("#theater")
+var theaterContainer = html.get("#theater")
 var imageContainer = html.get("#imageContainer")
 var imgInfo = html.get("#imgInfo")
+var mapContainer = html.get("#map")
 
 let url = new URL(window.location.href)
 
@@ -96,6 +97,44 @@ const pageControls = {
     }
 }
 
+const viewControls = {
+    openMap(){
+        console.log("map opened ;p")
+        openMapView();
+
+
+    },
+    createListeners(){
+        html.get('.map-button').addEventListener("click", ()=>{
+            viewControls.openMap();
+            update();
+        })
+    }
+
+}
+
+function openMapView(img) {
+
+
+    // show the image
+    mapContainer.style.display = "flex"
+
+    // prevent body from scrolling when theater is open
+    htmlbody.setAttribute("class", "modal-open")
+
+    return null;
+}
+
+function closeMapView() {
+    mapContainer.style.display = "none"
+    htmlbody.removeAttribute("class")
+    state.currentTheaterImageId = "";
+    deleteParam('photo');
+
+    return null;
+}
+
+
 const theaterControls = {
     next(){
         let nextImageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) + 1;
@@ -156,7 +195,7 @@ const list = {
     }
   }
   
-  const buttons = {
+const buttons = {
     create(number){
         const button = document.createElement('div');
         button.innerHTML =  number;
@@ -194,7 +233,7 @@ const list = {
         }
         return {maxLeft, maxRight}
     }
-  }
+}
 
 function openTheaterMode(img) {
     state.currentTheaterImageId = img.id;
@@ -204,7 +243,7 @@ function openTheaterMode(img) {
     // body.innerHTML = img.text;
 
     // show the image
-    container.style.display = "flex"
+    theaterContainer.style.display = "flex"
 
     // prevent body from scrolling when theater is open
     htmlbody.setAttribute("class", "modal-open")
@@ -214,7 +253,7 @@ function openTheaterMode(img) {
 }
 
 function closeTheaterMode() {
-    container.style.display = "none"
+    theaterContainer.style.display = "none"
     htmlbody.removeAttribute("class")
     state.currentTheaterImageId = "";
     deleteParam('photo');
@@ -224,7 +263,7 @@ function closeTheaterMode() {
 
 theaterImage.onclick = function(e) { e.stopPropagation();};
 imgInfo.onclick = function(e) { e.stopPropagation(); };
-container.onclick = function(e) { closeTheaterMode();};
+theaterContainer.onclick = function(e) { closeTheaterMode();};
 html.get(".theater-controls").onclick = function(e) { e.stopPropagation() }
 
 function update(){
@@ -236,6 +275,7 @@ function init(){
     getImages(totalItems);
     pageControls.createListeners();
     theaterControls.createListeners();
+    viewControls.createListeners();
     
     const initPage = url.searchParams.get("page");
     const initPhoto = url.searchParams.get("photo")
