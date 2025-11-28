@@ -24,7 +24,9 @@ var body = html.get("#imgInfoBody")
 var theaterContainer = html.get("#theater")
 var imageContainer = html.get("#imageContainer")
 var imgInfo = html.get("#imgInfo")
-var mapContainer = html.get("#map")
+var mapC = html.get("#map")
+var mapContainer = html.get("#mapContainer")
+
 
 let url = new URL(window.location.href)
 
@@ -104,9 +106,16 @@ const viewControls = {
 
 
     },
+    closeMap() {
+        // closeMapView();
+    },
     createListeners(){
         html.get('.map-button').addEventListener("click", ()=>{
             viewControls.openMap();
+            update();
+        })
+        html.get('#map').addEventListener("click", ()=>{
+            viewControls.closeMap();
             update();
         })
     }
@@ -116,20 +125,19 @@ const viewControls = {
 function openMapView(img) {
 
 
-    // show the image
-    mapContainer.style.display = "flex"
+    // show the map
+    mapC.style.display = "flex";
+    mapContainer.style.height = "500px";
+    mapContainer.style.width = "500px";
 
     // prevent body from scrolling when theater is open
     htmlbody.setAttribute("class", "modal-open")
-
     return null;
 }
 
 function closeMapView() {
     mapContainer.style.display = "none"
     htmlbody.removeAttribute("class")
-    state.currentTheaterImageId = "";
-    deleteParam('photo');
 
     return null;
 }
@@ -288,6 +296,17 @@ function init(){
         let imageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(initPhoto);
         openTheaterMode(imagesList[imageIndex])
     }
+
+    map = L.map('mapContainer').setView([51.505, -0.09], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    map.whenReady(() => {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 1000);
+    });
 
     update();
 }

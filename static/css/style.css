@@ -176,6 +176,7 @@ body.modal-open {
     overflow: scroll;
 }
 
-.map-container {
-    height: 200px;
+#mapContainer {
+    /* height: 500px;
+    width: 500px; */
 }
