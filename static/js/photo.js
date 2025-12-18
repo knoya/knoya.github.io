@@ -26,6 +26,7 @@ var imageContainer = html.get("#imageContainer")
 var imgInfo = html.get("#imgInfo")
 var mapC = html.get("#map")
 var mapContainer = html.get("#mapContainer")
+var map = null;
 
 
 let url = new URL(window.location.href)
@@ -99,47 +100,112 @@ const pageControls = {
     }
 }
 
-const viewControls = {
+const mapControls = {
     openMap(){
-        console.log("map opened ;p")
         openMapView();
-
-
     },
     closeMap() {
-        // closeMapView();
+        closeMapView();
     },
     createListeners(){
         html.get('.map-button').addEventListener("click", ()=>{
-            viewControls.openMap();
+            mapControls.openMap();
             update();
         })
-        html.get('#map').addEventListener("click", ()=>{
-            viewControls.closeMap();
+        html.get('.map-close-button').addEventListener("click", ()=>{
+            mapControls.closeMap();
             update();
         })
     }
 
 }
 
-function openMapView(img) {
+function openMapView() {
+    var firstPhotoIndex = state.page * state.imgPerPage - state.imgPerPage;
+    var lastPhotoIndex = state.page * state.imgPerPage;
+    var arrSlice = imagesList.slice(firstPhotoIndex, lastPhotoIndex);
 
+    showMapView();
+    setUpMap(arrSlice);
+    setMarkers(arrSlice);
+    
 
-    // show the map
-    mapC.style.display = "flex";
-    mapContainer.style.height = "500px";
-    mapContainer.style.width = "500px";
-
-    // prevent body from scrolling when theater is open
-    htmlbody.setAttribute("class", "modal-open")
     return null;
 }
 
+function setUpMap(arrSlice) {
+    var coordinates = setInitialMapView(arrSlice);
+    var zoomLevel = setInitialMapZoomLevel(arrSlice);
+
+    map = L.map('mapContainer').setView(coordinates, zoomLevel);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+}
+
+function setMarkers(arrSlice) {
+    for (i=0; i<arrSlice.length; i++) {
+        if (arrSlice[i].coordinates) {
+            var [lat, lng] = arrSlice[i].coordinates.split(',').map(str => parseFloat(str.trim()));
+            console.log("hello");
+            L.marker([lat, lng]).addTo(map)
+            .bindPopup(setMarkerPopupContent(arrSlice[i]));
+        }
+    }
+}
+
+function setMarkerPopupContent(photoData) {
+    return(`
+        <img src="${photoData.path}" style="max-height:300px; max-width: 300px;"></img>
+        `)
+}
+
+function showMapView() {
+    mapC.style.display = "flex";
+
+    // prevent body from scrolling when theater is open
+    htmlbody.setAttribute("class", "modal-open")
+}
+
 function closeMapView() {
-    mapContainer.style.display = "none"
+    mapC.style.display = "none"
     htmlbody.removeAttribute("class")
 
+    map.remove();
+
     return null;
+}
+
+function setInitialMapView(arrSlice) {
+    
+    return getAverageCoordinates(arrSlice) ?? [0,0];
+}
+
+function getAverageCoordinates(arr) {
+    var coordinates = arr.filter(obj => obj.coordinates).map(obj => obj.coordinates);
+
+    if (!coordinates || coordinates.length === 0) {
+        return null;
+    }
+
+    let totalLat = 0;
+    let totalLng = 0;
+
+    for (const coord of coordinates) {
+        const [lat, lng] = coord.split(',').map(str => parseFloat(str.trim()));
+        totalLat += lat;
+        totalLng += lng;
+    }
+
+    const avgLat = totalLat / coordinates.length;
+    const avgLng = totalLng / coordinates.length;
+
+    return [avgLat, avgLng];
+}
+
+function setInitialMapZoomLevel() {
+    return (13);
 }
 
 
@@ -283,7 +349,7 @@ function init(){
     getImages(totalItems);
     pageControls.createListeners();
     theaterControls.createListeners();
-    viewControls.createListeners();
+    mapControls.createListeners();
     
     const initPage = url.searchParams.get("page");
     const initPhoto = url.searchParams.get("photo")
@@ -296,19 +362,10 @@ function init(){
         let imageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(initPhoto);
         openTheaterMode(imagesList[imageIndex])
     }
-
-    map = L.map('mapContainer').setView([51.505, -0.09], 13);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-    map.whenReady(() => {
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 1000);
-    });
-
+    
     update();
 }
   
+
+
 init()

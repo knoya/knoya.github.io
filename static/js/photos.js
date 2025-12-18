@@ -3,19 +3,24 @@ var imgJSON = [
         "path": "static/img/IMG_7535.JPG",
         "title": "",
         "text": "",
-        "id": "1"
+        "id": "1",
+        "lat": "35 deg 41' 40.48\" N",
+        "lon": "139 deg 46' 49.42\" E",
+        "coordinates": "35.682732, 139.753223"
     },
     {
         "path": "static/img/IMG_7540.JPG",
         "title": "",
         "text": "",
-        "id": "2"
+        "id": "2",
+        "coordinates": "35.692269, 139.773052"
     },
     {
         "path": "static/img/IMG_7553.JPG",
         "title": "",
         "text": "",
-        "id": "3"
+        "id": "3",
+        "coordinates": "35.671698, 139.774848"
     },
     {
         "path": "static/img/IMG_7593.JPG",
