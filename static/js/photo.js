@@ -157,7 +157,7 @@ function setMarkers(arrSlice) {
 
 function setMarkerPopupContent(photoData) {
     return(`
-        <img src="${photoData.path}" style="max-height:300px; max-width: 300px;"></img>
+        <img src="${photoData.SourceFile}" style="max-height:300px; max-width: 300px;"></img>
         `)
 }
 
@@ -211,7 +211,7 @@ function setInitialMapZoomLevel() {
 
 const theaterControls = {
     next(){
-        let nextImageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) + 1;
+        let nextImageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(state.currentTheaterImageId) + 1;
 
         if (nextImageIndex < totalItems) {
             openTheaterMode(imagesList[nextImageIndex])
@@ -219,7 +219,7 @@ const theaterControls = {
         }
     },
     prev(){
-        let prevImageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(state.currentTheaterImageId) - 1;
+        let prevImageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(state.currentTheaterImageId) - 1;
 
         if (prevImageIndex >= 0) {
             openTheaterMode(imagesList[prevImageIndex])
@@ -247,7 +247,7 @@ const list = {
             var image = document.createElement("img");
 
             imgDiv.onclick = function() { openTheaterMode(value); };
-            image.setAttribute("src", value.path);
+            image.setAttribute("src", value.SourceFile);
             //imgDiv.style.backgroundColor = img.bgColor;
             imgDiv.setAttribute("loading", "lazy")
             imgDiv.setAttribute("alt", "image item")
@@ -310,8 +310,8 @@ const buttons = {
 }
 
 function openTheaterMode(img) {
-    state.currentTheaterImageId = img.id;
-    theaterImage.setAttribute("src", img.path);
+    state.currentTheaterImageId = img.Index;
+    theaterImage.setAttribute("src", img.SourceFile);
 
     // title.innerHTML = img.title;
     // body.innerHTML = img.text;
@@ -359,7 +359,7 @@ function init(){
     }
 
     if (initPhoto) {
-        let imageIndex = imagesList.map(function(obj) {return obj.id}).indexOf(initPhoto);
+        let imageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(initPhoto);
         openTheaterMode(imagesList[imageIndex])
     }
     
