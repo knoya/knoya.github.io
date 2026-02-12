@@ -13,7 +13,11 @@ var state = {
     imgPerPage,
     totalPage,
     maxVisibleButtons: 5,
-    currentTheaterImageId: ""
+    currentTheaterImage: {},
+    map: {
+        points: [],
+        zoom: 10
+    }
 };
 
 var htmlbody = html.get("body");
@@ -44,7 +48,7 @@ function setParams(name, data) {
             break;
         case "photo":
             const imageIndex = data;
-            url.searchParams.set('photo', imagesList[imageIndex].id);
+            url.searchParams.set('photo', imagesList[imageIndex].Index);
             window.history.pushState(state, '', url.toString());
             break;
     }
@@ -101,27 +105,41 @@ const pageControls = {
 }
 
 const mapControls = {
-    openMap(){
-        openMapView();
+    openMapSlice(){
+        openMapSliceView();
+    },
+    openMapSingle(){
+        openMapSingleView();
+    },
+    openMapAll() {
+        openMapAllView();
     },
     closeMap() {
         closeMapView();
     },
     createListeners(){
         html.get('.map-button').addEventListener("click", ()=>{
-            mapControls.openMap();
+            mapControls.openMapSlice();
             update();
         })
         html.get('.map-close-button').addEventListener("click", ()=>{
             mapControls.closeMap();
             update();
         })
+        html.get('.theater-control-map').addEventListener("click", ()=>{
+            mapControls.openMapSingle();
+            update();
+        })
+        html.get('.map-all-button').addEventListener("click", ()=>{
+            mapControls.openMapAll();
+            update();
+        })
     }
 
 }
 
-function openMapView() {
-    var firstPhotoIndex = state.page * state.imgPerPage - state.imgPerPage;
+function openMapSliceView() {
+    var firstPhotoIndex = (state.page - 1) * state.imgPerPage;
     var lastPhotoIndex = state.page * state.imgPerPage;
     var arrSlice = imagesList.slice(firstPhotoIndex, lastPhotoIndex);
 
@@ -129,6 +147,22 @@ function openMapView() {
     setUpMap(arrSlice);
     setMarkers(arrSlice);
     
+
+    return null;
+}
+
+function openMapSingleView() {
+    showMapView();
+    setUpMap([state.currentTheaterImage]);
+    setMarkers([state.currentTheaterImage]);
+
+    return null;
+}
+
+function openMapAllView() {
+    showMapView();
+    // setUpMap(imagesList);
+    setMarkers(imagesList);
 
     return null;
 }
@@ -146,13 +180,41 @@ function setUpMap(arrSlice) {
 
 function setMarkers(arrSlice) {
     for (i=0; i<arrSlice.length; i++) {
-        if (arrSlice[i].coordinates) {
-            var [lat, lng] = arrSlice[i].coordinates.split(',').map(str => parseFloat(str.trim()));
-            console.log("hello");
-            L.marker([lat, lng]).addTo(map)
+        if (arrSlice[i].GPSLatitude && arrSlice[i].GPSLongitude) {
+            const decLat = dmsToDecimal(arrSlice[i].GPSLatitude);
+            const decLng = dmsToDecimal(arrSlice[i].GPSLongitude);
+            L.marker([decLat, decLng]).addTo(map)
             .bindPopup(setMarkerPopupContent(arrSlice[i]));
         }
     }
+}
+
+
+function dmsToDecimal(dmsString) {
+    // Example input: "48 deg 28' 26.86\" N" or "123 deg 12' 34.56\" W"
+    
+    // Regex to extract DMS parts and direction
+    const regex = /(\d+)[^\d]+(\d+)[^\d]+(\d+(?:\.\d+)?)[^\d]*([NSEW])/i;
+    const match = dmsString.match(regex);
+
+    if (!match) {
+        throw new Error('Invalid DMS format');
+    }
+
+    let degrees = parseInt(match[1], 10);
+    let minutes = parseInt(match[2], 10);
+    let seconds = parseFloat(match[3]);
+    let direction = match[4].toUpperCase();
+
+    // Convert to decimal
+    let decimal = degrees + (minutes / 60) + (seconds / 3600);
+
+    // If direction is South or West, make it negative
+    if (direction === 'S' || direction === 'W') {
+        decimal *= -1;
+    }
+
+    return decimal;
 }
 
 function setMarkerPopupContent(photoData) {
@@ -183,7 +245,7 @@ function setInitialMapView(arrSlice) {
 }
 
 function getAverageCoordinates(arr) {
-    var coordinates = arr.filter(obj => obj.coordinates).map(obj => obj.coordinates);
+    var coordinates = arr.filter(obj => obj.GPSLatitude && obj.GPSLongitude);
 
     if (!coordinates || coordinates.length === 0) {
         return null;
@@ -193,9 +255,10 @@ function getAverageCoordinates(arr) {
     let totalLng = 0;
 
     for (const coord of coordinates) {
-        const [lat, lng] = coord.split(',').map(str => parseFloat(str.trim()));
-        totalLat += lat;
-        totalLng += lng;
+        const decLat = dmsToDecimal(coord.GPSLatitude);
+        const decLng = dmsToDecimal(coord.GPSLongitude);
+        totalLat += decLat;
+        totalLng += decLng;
     }
 
     const avgLat = totalLat / coordinates.length;
@@ -204,27 +267,37 @@ function getAverageCoordinates(arr) {
     return [avgLat, avgLng];
 }
 
-function setInitialMapZoomLevel() {
-    return (13);
+function setInitialMapZoomLevel(arrSlice) {
+    return (10);
 }
 
 
 const theaterControls = {
     next(){
-        let nextImageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(state.currentTheaterImageId) + 1;
+        let nextImageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(state.currentTheaterImage.Index) + 1;
 
         if (nextImageIndex < totalItems) {
             openTheaterMode(imagesList[nextImageIndex])
             setParams('photo', nextImageIndex)
         }
+
+        var calculatedPage = Math.trunc(state.currentTheaterImage.Index / imgPerPage + 1);
+        state.page = calculatedPage;
+
+        setParams('page');
     },
     prev(){
-        let prevImageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(state.currentTheaterImageId) - 1;
+        let prevImageIndex = imagesList.map(function(obj) {return obj.Index}).indexOf(state.currentTheaterImage.Index) - 1;
 
         if (prevImageIndex >= 0) {
             openTheaterMode(imagesList[prevImageIndex])
             setParams('photo', prevImageIndex)
         }
+
+        var calculatedPage = Math.trunc(state.currentTheaterImage.Index / imgPerPage + 1);
+        state.page = calculatedPage;
+
+        setParams('page');
     },
     createListeners(){
         html.get('.theater-control-right').addEventListener("click", (e)=>{
@@ -310,8 +383,8 @@ const buttons = {
 }
 
 function openTheaterMode(img) {
-    state.currentTheaterImageId = img.Index;
-    theaterImage.setAttribute("src", img.SourceFile);
+    state.currentTheaterImage = img;
+    theaterImage.setAttribute("src", state.currentTheaterImage.SourceFile);
 
     // title.innerHTML = img.title;
     // body.innerHTML = img.text;
@@ -321,7 +394,8 @@ function openTheaterMode(img) {
 
     // prevent body from scrolling when theater is open
     htmlbody.setAttribute("class", "modal-open")
-    setParams("photo", state.currentTheaterImageId)
+
+    setParams("photo", img.Index)
 
     return null;
 }
@@ -329,7 +403,7 @@ function openTheaterMode(img) {
 function closeTheaterMode() {
     theaterContainer.style.display = "none"
     htmlbody.removeAttribute("class")
-    state.currentTheaterImageId = "";
+    state.currentTheaterImage = {};
     deleteParam('photo');
 
     return null;
@@ -351,8 +425,8 @@ function init(){
     theaterControls.createListeners();
     mapControls.createListeners();
     
-    const initPage = url.searchParams.get("page");
-    const initPhoto = url.searchParams.get("photo")
+    const initPage = parseInt(url.searchParams.get("page"));
+    const initPhoto = parseInt(url.searchParams.get("photo"));
 
     if (initPage) {
         pageControls.goTo(initPage)
