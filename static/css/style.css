@@ -30,7 +30,7 @@ body.modal-open {
 
 .title-bar > div {
     width: auto;
-    margin: 30px;
+    margin: 0 30px;
     text-align: center;
     
 }
@@ -41,19 +41,23 @@ body.modal-open {
     font-size: 26px;
 }
 
+.img-grid-container {
+    width: 100%;
+}
+
 .img-grid {
+    margin: 0 4vw;
     display: flex;
     flex-wrap: wrap;
     background-color: none;
     align-items: center;
-    justify-content: center;
-    padding-top: 10px;
+    justify-content: space-between;
 }
 
 .img-grid > div {
-    width: 300px;
-    height: 300px;
-    margin: 10px;
+    width: 92vw;
+    height: 92vw;
+    margin: 0 0 15px 0;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -61,20 +65,21 @@ body.modal-open {
     background-color: rgb(0, 0, 0);
 }
 
-.img-grid > div > img {
+.img-grid > #imgGrid > div > img {
     /* object-fit: cover; */
     width: 100%;
 }
 
-.pagination {
+.bottom-nav, .bottom-buttons {
     display: flex;
     background-color: none;
     justify-content: center;
     align-items: center;
+    margin-bottom: 8px;
 }
 
-.pagination > div:not(.numbers), .numbers > div {
-    margin: 0 10px;
+.bottom-nav > div:not(.numbers), .numbers > div {
+    margin: 0 4px;
     padding: 4px 8px;
 }
 
@@ -90,6 +95,8 @@ body.modal-open {
     align-items: flex-end;
     justify-content: flex-end;
     justify-content: space-around;
+    font-size: 13px;
+    padding-top: 5px;
 }
 
 .theater {
@@ -126,13 +133,11 @@ body.modal-open {
 .theater-controls {
     display: flex;
     justify-content: space-around;
-    width: 30%;
-    margin-top: 5px;
 }
 
 .theater-controls > div {
     color: white;
-    padding: 8px 4px;
+    padding: 8px;
     cursor: pointer;
 }
 
@@ -193,4 +198,61 @@ body.modal-open {
     color: black;
     padding: 8px 4px;
     cursor: pointer;
+}
+
+
+
+
+
+
+
+
+@media (min-width: 640px)  {
+    .img-grid {
+        margin: 0 3vw;
+    }
+    .img-grid > div {
+        width: 46vw;
+        height: 46vw;
+    }
+
+}
+@media (min-width: 768px)  {
+    .img-grid {
+        margin: 0 3vw;
+    }
+    .img-grid > div {
+        width: 30vw;
+        height: 30vw;
+    }
+}
+
+@media (min-width: 1024px) {
+    .img-grid {
+        margin: 0 3vw;
+    }
+    .img-grid > div {
+        width: 30vw;
+        height: 30vw;
+    }
+}
+
+@media (min-width: 1280px) {
+    .img-grid {
+        margin: 0 2vw;
+    }
+    .img-grid > div {
+        width: 23vw;
+        height: 23vw;
+    }
+}
+
+@media (min-width: 1536px) {
+    .img-grid {
+        margin: 0 2vw;
+    }
+    .img-grid > #imgGrid > div {
+        width: 23vw;
+        height: 23vw;
+    }
 }

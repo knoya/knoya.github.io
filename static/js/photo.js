@@ -330,7 +330,7 @@ const list = {
         });
     },
     update(){
-        html.get(".img-grid").innerHTML = "";
+        html.get("#imgGrid").innerHTML = "";
         let page = state.page - 1;
         
         let start = page * state.imgPerPage;
@@ -353,10 +353,10 @@ const buttons = {
             pageControls.goTo(+page);
             update();
         })
-        html.get(".pagination .numbers").appendChild(button);
+        html.get(".bottom-nav .numbers").appendChild(button);
     },
     update(){
-        html.get('.pagination .numbers').innerHTML = '';
+        html.get('.bottom-nav .numbers').innerHTML = '';
         const { maxLeft, maxRight } = buttons.calculateMaxVisible();
         for(let page = maxLeft; page <= maxRight; page++){
             buttons.create(page);
